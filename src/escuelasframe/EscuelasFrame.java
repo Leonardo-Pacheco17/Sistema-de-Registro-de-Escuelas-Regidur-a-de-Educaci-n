@@ -9,25 +9,25 @@ import javax.swing.table.DefaultTableModel;
 
 public class EscuelasFrame extends javax.swing.JFrame {
 
-    public EscuelasFrame() {
-        initComponents();
-        setLocationRelativeTo(null);
-        cargarEscuelas();
+   public EscuelasFrame() {
+       initComponents();
+       setLocationRelativeTo(null);
+       cargarEscuelas();
     }
 
-    // ================== MÉTODOS DE BD ==================
+ 
 
     private void cargarEscuelas() {
         DefaultTableModel model = (DefaultTableModel) tablaEscuelas.getModel();
-        model.setRowCount(0); // limpiar tabla
+        model.setRowCount(0); 
 
-        String sql = "SELECT id_escuela, nombre, nivel, direccion, ruta FROM escuelas";
+       String sql = "SELECT id_escuela, nombre, nivel, direccion, ruta FROM escuelas";
 
-        try (Connection con = ConexionBD.getConexion();
+       try (Connection con = ConexionBD.getConexion();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) {
+             while (rs.next()) {
                 Object[] fila = new Object[5];
                 fila[0] = rs.getInt("id_escuela");
                 fila[1] = rs.getString("nombre");
@@ -42,45 +42,42 @@ public class EscuelasFrame extends javax.swing.JFrame {
         }
     }
 
-   private void agregarEscuela() {
-    String textoId   = txtId.getText().trim();
-    String nombre    = txtNombre.getText().trim();
-    String nivelIn = comboNivel.getSelectedItem().toString();
-    String direccion = txtDireccion.getText().trim();
-    String ruta      = txtRuta.getText().trim();
+    private void agregarEscuela() {
+      String textoId   = txtId.getText().trim();
+      String nombre    = txtNombre.getText().trim();
+      String nivelIn = comboNivel.getSelectedItem().toString();
+      String direccion = txtDireccion.getText().trim();
+      String ruta      = txtRuta.getText().trim();
 
-    // 1) Validar campos obligatorios: ID, Nombre y Nivel
-    if (textoId.isEmpty() || nombre.isEmpty() || nivelIn.isEmpty()) {
-        JOptionPane.showMessageDialog(this,
+       if (textoId.isEmpty() || nombre.isEmpty() || nivelIn.isEmpty()) {
+           JOptionPane.showMessageDialog(this,
                 "ID, Nombre y Nivel son obligatorios.\n" +
                 "Nivel debe ser: PRE, PRI, SEC, MS o SUP.");
+          return;
+        }
+
+      int id;
+        try {
+            id = Integer.parseInt(textoId);
+        } catch (NumberFormatException e) {
+           JOptionPane.showMessageDialog(this, "ID debe ser un número entero.");
         return;
-    }
+        }
+       String nivel = nivelIn;
 
-    // 2) Validar que el ID sea un número entero
-    int id;
-    try {
-        id = Integer.parseInt(textoId);
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "ID debe ser un número entero.");
-        return;
-    }
-String nivel = nivelIn;
+       String sql = "INSERT INTO escuelas (id_escuela, nombre, nivel, direccion, ruta) "
+            + "VALUES (?, ?, ?, ?, ?)";
 
-    // 4) INSERT con ID manual (coincide con tu tabla MySQL)
-    String sql = "INSERT INTO escuelas (id_escuela, nombre, nivel, direccion, ruta) "
-               + "VALUES (?, ?, ?, ?, ?)";
-
-    try (Connection con = ConexionBD.getConexion();
+       try (Connection con = ConexionBD.getConexion();
          PreparedStatement ps = con.prepareStatement(sql)) {
 
         ps.setInt(1, id);
         ps.setString(2, nombre);
-        ps.setString(3, nivel);      // ya validado
+        ps.setString(3, nivel);      
         ps.setString(4, direccion);
         ps.setString(5, ruta);
 
-        int filas = ps.executeUpdate();
+       int filas = ps.executeUpdate();
         if (filas > 0) {
             JOptionPane.showMessageDialog(this, "Escuela agregada correctamente.");
             limpiarCampos();
@@ -89,30 +86,30 @@ String nivel = nivelIn;
 
     } catch (SQLException e) {
         JOptionPane.showMessageDialog(this, "Error al agregar escuela: " + e.getMessage());
+     }
     }
-  }
 
 
 
     private void actualizarEscuela() {
-        String textoId = txtId.getText().trim();
+       String textoId = txtId.getText().trim();
         if (textoId.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Selecciona una escuela de la tabla para actualizar.");
             return;
-        }
+       }
 
-        int id;
+       int id;
         try {
-            id = Integer.parseInt(textoId);
+           id = Integer.parseInt(textoId);
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "ID inválido: " + textoId);
-            return;
+           JOptionPane.showMessageDialog(this, "ID inválido: " + textoId);
+           return;
         }
 
-        String nombre = txtNombre.getText().trim();
-        String nivel = comboNivel.getSelectedItem().toString();
-        String direccion = txtDireccion.getText().trim();
-        String ruta = txtRuta.getText().trim();
+       String nombre = txtNombre.getText().trim();
+       String nivel = comboNivel.getSelectedItem().toString();
+       String direccion = txtDireccion.getText().trim();
+       String ruta = txtRuta.getText().trim();
 
         if (nombre.isEmpty() || nivel.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Nombre y nivel son obligatorios.");
@@ -122,7 +119,7 @@ String nivel = nivelIn;
         String sql = "UPDATE escuelas SET nombre = ?, nivel = ?, direccion = ?, ruta = ? WHERE id_escuela = ?";
 
         try (Connection con = ConexionBD.getConexion();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+            PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, nombre);
             ps.setString(2, nivel);
@@ -130,12 +127,12 @@ String nivel = nivelIn;
             ps.setString(4, ruta);
             ps.setInt(5, id);
 
-            int filas = ps.executeUpdate();
-            if (filas > 0) {
+           int filas = ps.executeUpdate();
+           if (filas > 0) {
                 JOptionPane.showMessageDialog(this, "Escuela actualizada correctamente.");
                 limpiarCampos();
                 cargarEscuelas();
-            } else {
+           } else {
                 JOptionPane.showMessageDialog(this, "No se encontró la escuela a actualizar.");
             }
 
@@ -145,93 +142,91 @@ String nivel = nivelIn;
     }
 
     private void eliminarEscuela() {
-        int filaSeleccionada = tablaEscuelas.getSelectedRow();
+       int filaSeleccionada = tablaEscuelas.getSelectedRow();
         if (filaSeleccionada == -1) {
-            JOptionPane.showMessageDialog(this, "Seleccione una escuela en la tabla.");
-            return;
+           JOptionPane.showMessageDialog(this, "Seleccione una escuela en la tabla.");
+           return;
         }
 
-        Object valorId = tablaEscuelas.getValueAt(filaSeleccionada, 0);
-        int id;
-        try {
-            id = Integer.parseInt(valorId.toString());
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "ID inválido en la tabla: " + valorId);
+       Object valorId = tablaEscuelas.getValueAt(filaSeleccionada, 0);
+       int id;
+       try {
+           id = Integer.parseInt(valorId.toString());
+       } catch (NumberFormatException e) {
+           JOptionPane.showMessageDialog(this, "ID inválido en la tabla: " + valorId);
             return;
-        }
+       }
 
         int confirmar = JOptionPane.showConfirmDialog(this,
-                "¿Seguro que deseas eliminar la escuela con ID " + id + "?",
-                "Confirmar eliminación",
-                JOptionPane.YES_NO_OPTION);
+           "¿Seguro que deseas eliminar la escuela con ID " + id + "?",
+            "Confirmar eliminación",
+            JOptionPane.YES_NO_OPTION);
 
-        if (confirmar != JOptionPane.YES_OPTION) {
-            return;
-        }
+       if (confirmar != JOptionPane.YES_OPTION) {
+           return;
+       }
 
-        String sql = "DELETE FROM escuelas WHERE id_escuela = ?";
+       String sql = "DELETE FROM escuelas WHERE id_escuela = ?";
 
-        try (Connection con = ConexionBD.getConexion();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+       try (Connection con = ConexionBD.getConexion();
+            PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setInt(1, id);
-            int filas = ps.executeUpdate();
+           ps.setInt(1, id);
+           int filas = ps.executeUpdate();
 
             if (filas > 0) {
                 JOptionPane.showMessageDialog(this, "Escuela eliminada correctamente.");
                 cargarEscuelas();
                 limpiarCampos();
-            } else {
+           } else {
                 JOptionPane.showMessageDialog(this, "No se encontró la escuela.");
             }
 
-        } catch (SQLException e) {
+       } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error al eliminar escuela: " + e.getMessage());
         }
     }
 
     private void limpiarCampos() {
-        txtId.setText("");
-        txtNombre.setText("");
-        comboNivel.setSelectedIndex(0);
-        txtDireccion.setText("");
-        txtRuta.setText("");
+       txtId.setText("");
+       txtNombre.setText("");
+       comboNivel.setSelectedIndex(0);
+       txtDireccion.setText("");
+       txtRuta.setText("");
     }
     
-
-    // ================== INTERFAZ GRÁFICA ==================
 
     @SuppressWarnings("unchecked")
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        tablaEscuelas = new javax.swing.JTable();
-        jLabel1 = new javax.swing.JLabel();
-        txtId = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        txtNombre = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
-        comboNivel = new javax.swing.JComboBox<>();
-comboNivel.setModel(new javax.swing.DefaultComboBoxModel<>(
-        new String[] { "PRE", "PRI", "SEC", "MS", "SUP" }
-));
-        jLabel4 = new javax.swing.JLabel();
-        txtDireccion = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
-        txtRuta = new javax.swing.JTextField();
-        btnAgregar = new javax.swing.JButton();
-        btnActualizar = new javax.swing.JButton();
-        btnEliminar = new javax.swing.JButton();
-        btnLimpiar = new javax.swing.JButton();
-        btnRecargar = new javax.swing.JButton();
+       jScrollPane1 = new javax.swing.JScrollPane();
+       tablaEscuelas = new javax.swing.JTable();
+       jLabel1 = new javax.swing.JLabel();
+       txtId = new javax.swing.JTextField();
+       jLabel2 = new javax.swing.JLabel();
+       txtNombre = new javax.swing.JTextField();
+       jLabel3 = new javax.swing.JLabel();
+       comboNivel = new javax.swing.JComboBox<>();
+       comboNivel.setModel(new javax.swing.DefaultComboBoxModel<>(
+       new String[] { "PRE", "PRI", "SEC", "MS", "SUP" }
+       ));
+       jLabel4 = new javax.swing.JLabel();
+       txtDireccion = new javax.swing.JTextField();
+       jLabel5 = new javax.swing.JLabel();
+       txtRuta = new javax.swing.JTextField();
+       btnAgregar = new javax.swing.JButton();
+       btnActualizar = new javax.swing.JButton();
+       btnEliminar = new javax.swing.JButton();
+       btnLimpiar = new javax.swing.JButton();
+       btnRecargar = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Gestión de Escuelas - Regiduría");
+      setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+       setTitle("Gestión de Escuelas - Regiduría");
 
-        tablaEscuelas.setModel(new javax.swing.table.DefaultTableModel(
+       tablaEscuelas.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
-            },
+           },
             new String [] {
                 "ID", "Nombre", "Nivel", "Dirección", "Ruta"
             }
@@ -260,54 +255,53 @@ comboNivel.setModel(new javax.swing.DefaultComboBoxModel<>(
         });
         jScrollPane1.setViewportView(tablaEscuelas);
 
-        jLabel1.setText("ID:");
+       jLabel1.setText("ID:");
 
-        txtId.setEditable(true); // ID solo se muestra
+       txtId.setEditable(true); 
 
-        jLabel2.setText("Nombre:");
+       jLabel2.setText("Nombre:");
 
-        jLabel3.setText("Nivel (PRE/PRI/SEC/MS/SUP):");
+       jLabel3.setText("Nivel (PRE/PRI/SEC/MS/SUP):");
 
-        jLabel4.setText("Dirección:");
+       jLabel4.setText("Dirección:");
 
-        jLabel5.setText("Ruta (tramo):");
+       jLabel5.setText("Ruta (tramo):");
 
-        btnAgregar.setText("Agregar");
-        btnAgregar.addActionListener(new java.awt.event.ActionListener() {
+       btnAgregar.setText("Agregar");
+       btnAgregar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnAgregarActionPerformed(evt);
             }
         });
 
-        btnActualizar.setText("Actualizar");
+       btnActualizar.setText("Actualizar");
         btnActualizar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnActualizarActionPerformed(evt);
             }
         });
 
-        btnEliminar.setText("Eliminar");
-        btnEliminar.addActionListener(new java.awt.event.ActionListener() {
+       btnEliminar.setText("Eliminar");
+       btnEliminar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnEliminarActionPerformed(evt);
             }
         });
 
-        btnLimpiar.setText("Limpiar");
-        btnLimpiar.addActionListener(new java.awt.event.ActionListener() {
+       btnLimpiar.setText("Limpiar");
+       btnLimpiar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLimpiarActionPerformed(evt);
             }
         });
 
-        btnRecargar.setText("Recargar");
-        btnRecargar.addActionListener(new java.awt.event.ActionListener() {
+       btnRecargar.setText("Recargar");
+       btnRecargar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnRecargarActionPerformed(evt);
             }
         });
 
-        // Layout
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -380,21 +374,21 @@ comboNivel.setModel(new javax.swing.DefaultComboBoxModel<>(
         pack();
     }
 
-    private void btnAgregarActionPerformed(java.awt.event.ActionEvent evt) {
-        agregarEscuela();
-    }
+   private void btnAgregarActionPerformed(java.awt.event.ActionEvent evt) {
+       agregarEscuela();
+   }
 
-    private void btnActualizarActionPerformed(java.awt.event.ActionEvent evt) {
+   private void btnActualizarActionPerformed(java.awt.event.ActionEvent evt) {
         actualizarEscuela();
-    }
+   }
 
-    private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {
+   private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {
         eliminarEscuela();
-    }
+   }
 
-    private void btnLimpiarActionPerformed(java.awt.event.ActionEvent evt) {
+   private void btnLimpiarActionPerformed(java.awt.event.ActionEvent evt) {
         limpiarCampos();
-    }
+   }
 
     private void btnRecargarActionPerformed(java.awt.event.ActionEvent evt) {
         cargarEscuelas();
@@ -421,7 +415,6 @@ comboNivel.setModel(new javax.swing.DefaultComboBoxModel<>(
         });
     }
 
-    // Variables Swing
     private javax.swing.JButton btnActualizar;
     private javax.swing.JButton btnAgregar;
     private javax.swing.JButton btnEliminar;
